@@ -1,0 +1,60 @@
+
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource  # 数据源类型为 Druid 数据源，它是一个高效、灵活的数据库连接池
+    driver-class-name: com.mysql.cj.jdbc.Driver  # 使用 MySQL 驱动类
+    url: jdbc:mysql://localhost/healthy?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf-8  # 数据库连接 URL，指定了数据库的 IP、端口和数据库名
+    username: root  # 数据库用户名
+    password: 123456  # 数据库密码
+  redis:
+    host: localhost  # Redis 服务的主机地址，默认为 localhost
+    port: 6379  # Redis 服务的端口号，默认为 6379
+    lettuce:
+      pool:
+        max-active: 10  # 最大连接数
+        max-idle: 10  # 连接池中最大空闲连接数
+        min-idle: 1  # 连接池中最小空闲连接数
+        time-between-eviction-runs: 10s  # 连接池空闲连接检查的时间间隔，定期检查连接池中的连接是否符合最小空闲数和最大空闲数的要求
+
+server:
+  port: 80
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 输出 SQL 日志到控制台，方便调试
+    map-underscore-to-camel-case: true  # 启用下划线转驼峰命名规则
+  global-config:
+    db-config:
+      table-prefix: t_  # 表前缀配置，所有表名将以 t_ 为前缀
+      id-type: auto  # 主键生成策略，auto 表示使用数据库自动增长主键
+
+#阿里云短信配置 TODO 未开通
+AccessKey-ID: ${ALIBABA_ACCESS_KEY_ID} 
+AccessKey-Secret: ${ALIBABA_ACCESS_KEY_SECRET}
+SysRegionId: "cn-hangzhou"
+SignName: "阿里云短信测试"
+TemplateCode: 
+
+#七牛云存储配置
+AccessKey: ${ALIBABA_ACCESS_KEY_ID} 
+SecretKey: ${ALIBABA_ACCESS_KEY_SECRET}
+Bucket: ""
+MemoryArea: "z0"   
+
+# Sa-Token 配置 (文档: https://sa-token.cc)
+sa-token:
+  token-name: token  # Token 名称，客户端会存储此 cookie
+  timeout: 2592000  # Token 的有效期（单位：秒），这里设置为 30 天
+  activity-timeout: -1  # Token 的临时有效期，单位秒，-1 表示永不过期
+  is-concurrent: true  # 是否允许同一账号并发登录，true 表示允许
+  is-share: true  # 是否共用一个 Token，true 表示多个登录使用相同的 Token
+  token-style: uuid  # Token 风格，使用 UUID 作为 token 的生成方式
+  is-log: false  # 是否开启操作日志
+
+#logging:
+#  level:
+#    com.baomidou.mybatisplus: debug  # 设置 MyBatis-Plus 的日志级别为 debug，便于调试
+#    org.mybatis: debug  # 设置 MyBatis 的日志级别为 debug，便于调试
+#    org.springframework.web: debug  # 设置 Spring Web 的日志级别为 debug，便于调试
+#    org.springframework.boot: debug  # 设置 Spring Boot 的日志级别为 debug，便于调试

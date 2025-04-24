@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>体检上传</title>
+    <link rel="stylesheet" href="../plugins/elementui/index.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .upload-container {
+            padding: 20px;
+        }
+        .upload-header {
+            margin-bottom: 20px;
+        }
+        .form-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+        }
+        .upload-tip {
+            font-size: 14px;
+            color: #909399;
+            margin: 10px 0;
+        }
+        .preview-image {
+            max-width: 200px;
+            margin-top: 10px;
+        }
+        .data-grid {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body class="hold-transition">
+    <div id="app">
+        <div class="content-header">
+            <h1>体检数据上传</h1>
+        </div>
+        <div class="app-container">
+            <div class="upload-container">
+                <el-card class="form-container">
+                    <el-form ref="form" :model="form" :rules="rules" label-width="120px">
+                        <el-form-item label="会员姓名" prop="name">
+                            <el-input v-model="form.name" style="width: 50%"></el-input>
+                        </el-form-item>
+                        
+                        <el-form-item label="体检日期" prop="checkDate">
+                            <el-date-picker
+                                v-model="form.checkDate"
+                                type="date"
+                                placeholder="选择日期"
+                                style="width: 50%">
+                            </el-date-picker>
+                        </el-form-item>
+
+                        <el-form-item label="体检报告" prop="report">
+                            <el-upload
+                                class="upload-demo"
+                                action="#"
+                                :on-preview="handlePreview"
+                                :on-remove="handleRemove"
+                                :before-remove="beforeRemove"
+                                :limit="5"
+                                :on-exceed="handleExceed"
+                                :file-list="fileList">
+                                <el-button size="small" type="primary">点击上传</el-button>
+                                <div slot="tip" class="upload-tip">只能上传jpg/png/pdf文件，且不超过10MB</div>
+                            </el-upload>
+                        </el-form-item>
+
+                        <el-form-item label="体检指标" prop="indicators">
+                            <el-table
+                                :data="form.indicators"
+                                style="width: 100%"
+                                class="data-grid">
+                                <el-table-column
+                                    prop="name"
+                                    label="指标名称"
+                                    width="180">
+                                </el-table-column>
+                                <el-table-column
+                                    prop="value"
+                                    label="检查值"
+                                    width="180">
+                                    <template slot-scope="scope">
+                                        <el-input v-model="scope.row.value"></el-input>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column
+                                    prop="unit"
+                                    label="单位">
+                                </el-table-column>
+                                <el-table-column
+                                    prop="reference"
+                                    label="参考范围">
+                                </el-table-column>
+                            </el-table>
+                        </el-form-item>
+
+                        <el-form-item label="备注" prop="remarks">
+                            <el-input
+                                type="textarea"
+                                :rows="3"
+                                placeholder="请输入备注信息"
+                                v-model="form.remarks"
+                                style="width: 80%">
+                            </el-input>
+                        </el-form-item>
+
+                        <el-form-item>
+                            <el-button type="primary" @click="onSubmit">提交</el-button>
+                            <el-button @click="resetForm">重置</el-button>
+                        </el-form-item>
+                    </el-form>
+                </el-card>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="../js/vue.js"></script>
+<script src="../plugins/elementui/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            form: {
+                name: '',
+                checkDate: '',
+                remarks: '',
+                indicators: [
+                    { name: '血压', value: '', unit: 'mmHg', reference: '90-140/60-90' },
+                    { name: '血糖', value: '', unit: 'mmol/L', reference: '3.9-6.1' },
+                    { name: '总胆固醇', value: '', unit: 'mmol/L', reference: '2.8-5.17' },
+                    { name: '甘油三酯', value: '', unit: 'mmol/L', reference: '0.56-1.7' },
+                    { name: '体重', value: '', unit: 'kg', reference: '标准BMI 18.5-23.9' }
+                ]
+            },
+            rules: {
+                name: [
+                    { required: true, message: '请输入会员姓名', trigger: 'blur' }
+                ],
+                checkDate: [
+                    { required: true, message: '请选择体检日期', trigger: 'change' }
+                ]
+            },
+            fileList: []
+        },
+        methods: {
+            onSubmit() {
+                this.$refs.form.validate((valid) => {
+                    if (valid) {
+                        this.$message({
+                            message: '体检数据上传成功！',
+                            type: 'success'
+                        });
+                    } else {
+                        return false;
+                    }
+                });
+            },
+            resetForm() {
+                this.$refs.form.resetFields();
+                this.fileList = [];
+            },
+            handleRemove(file, fileList) {
+                console.log(file, fileList);
+            },
+            handlePreview(file) {
+                console.log(file);
+            },
+            handleExceed(files, fileList) {
+                this.$message.warning(`当前限制选择 5 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
+            },
+            beforeRemove(file, fileList) {
+                return this.$confirm(`确定移除 ${file.name}？`);
+            }
+        }
+    });
+</script>
+</html>

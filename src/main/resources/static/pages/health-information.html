@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,user-scalable=no,minimal-ui">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <link rel="icon" href="../img/asset-favico.ico">
+        <title>健康咨询</title>
+        <link rel="stylesheet" href="../css/page-health-index.css" />
+        <link rel="stylesheet" href="../plugins/elementui/index.css" />
+        <script src="../plugins/jquery/dist/jquery.min.js"></script>
+        <script src="../plugins/vue/vue.js"></script>
+        <script src="../plugins/vue/axios-0.18.0.js"></script>
+        <script src="../plugins/elementui/index.js"></script>
+        <style>
+            .info-container {
+                padding: 20px;
+            }
+            .info-card {
+                background: #fff;
+                border-radius: 8px;
+                padding: 15px;
+                margin-bottom: 15px;
+                box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
+            }
+            .doctor-list {
+                margin-top: 20px;
+            }
+            .doctor-item {
+                display: flex;
+                align-items: center;
+                padding: 15px;
+                border-bottom: 1px solid #eee;
+            }
+            .doctor-avatar {
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                margin-right: 15px;
+            }
+            .doctor-info {
+                flex: 1;
+            }
+            .doctor-name {
+                font-size: 16px;
+                font-weight: bold;
+                color: #303133;
+                margin-bottom: 5px;
+            }
+            .doctor-title {
+                font-size: 14px;
+                color: #606266;
+                margin-bottom: 5px;
+            }
+            .doctor-specialty {
+                font-size: 13px;
+                color: #909399;
+            }
+            .consult-btn {
+                padding: 8px 15px;
+                background-color: #409eff;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                font-size: 14px;
+            }
+            .question-form {
+                margin-top: 20px;
+            }
+            .form-item {
+                margin-bottom: 15px;
+            }
+            .form-label {
+                display: block;
+                margin-bottom: 5px;
+                color: #606266;
+            }
+            .form-input, .form-textarea {
+                width: 100%;
+                padding: 8px;
+                border: 1px solid #dcdfe6;
+                border-radius: 4px;
+            }
+            .form-textarea {
+                height: 100px;
+                resize: none;
+            }
+            .tag {
+                display: inline-block;
+                padding: 2px 8px;
+                margin: 0 5px 5px 0;
+                background: #f0f2f5;
+                border-radius: 4px;
+                font-size: 12px;
+                color: #606266;
+            }
+            .tag.active {
+                background: #409eff;
+                color: white;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="app">
+            <div class="top-header">
+                <span class="f-left"><i class="icon-back" onclick="history.go(-1)"></i></span>
+                <span class="center">健康咨询</span>
+                <span class="f-right"><i class="icon-more"></i></span>
+            </div>
+            
+            <div class="info-container">
+                <!-- 快速咨询区域 -->
+                <div class="info-card">
+                    <h3>快速咨询</h3>
+                    <div class="question-form">
+                        <div class="form-item">
+                            <label class="form-label">选择咨询类型</label>
+                            <div class="tag-group">
+                                <span v-for="tag in tags" 
+                                      :key="tag"
+                                      :class="['tag', selectedTags.includes(tag) ? 'active' : '']"
+                                      @click="toggleTag(tag)">
+                                    {{tag}}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="form-item">
+                            <label class="form-label">咨询内容</label>
+                            <textarea class="form-textarea" 
+                                    v-model="questionContent"
+                                    placeholder="请详细描述您的健康问题..."></textarea>
+                        </div>
+                        <button class="consult-btn" style="width: 100%" @click="submitQuestion">提交咨询</button>
+                    </div>
+                </div>
+
+                <!-- 专家咨询区域 -->
+                <div class="info-card">
+                    <h3>专家咨询</h3>
+                    <div class="doctor-list">
+                        <div class="doctor-item" v-for="doctor in doctors" :key="doctor.id">
+                            <img :src="doctor.avatar" class="doctor-avatar">
+                            <div class="doctor-info">
+                                <div class="doctor-name">{{doctor.name}}</div>
+                                <div class="doctor-title">{{doctor.title}}</div>
+                                <div class="doctor-specialty">{{doctor.specialty}}</div>
+                            </div>
+                            <button class="consult-btn" @click="consultDoctor(doctor)">咨询</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 我的咨询记录 -->
+                <div class="info-card">
+                    <h3>咨询记录</h3>
+                    <div v-if="consultRecords.length > 0">
+                        <div v-for="record in consultRecords" :key="record.id" style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                            <div style="color: #303133;">{{record.question}}</div>
+                            <div style="color: #909399; font-size: 13px; margin-top: 5px;">
+                                {{record.date}} | {{record.status}}
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else style="text-align: center; color: #909399; padding: 20px;">
+                        暂无咨询记录
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            new Vue({
+                el: '#app',
+                data: {
+                    tags: ['内科', '外科', '心理咨询', '营养咨询', '运动医学', '中医养生'],
+                    selectedTags: [],
+                    questionContent: '',
+                    doctors: [
+                        {
+                            id: 1,
+                            name: '张医生',
+                            title: '主任医师',
+                            specialty: '专长：心血管内科、高血压、冠心病',
+                            avatar: '../img/doctor1.png'
+                        },
+                        {
+                            id: 2,
+                            name: '李医生',
+                            title: '副主任医师',
+                            specialty: '专长：消化内科、胃肠疾病',
+                            avatar: '../img/doctor2.png'
+                        },
+                        {
+                            id: 3,
+                            name: '王医生',
+                            title: '主任医师',
+                            specialty: '专长：中医内科、养生保健',
+                            avatar: '../img/doctor3.png'
+                        }
+                    ],
+                    consultRecords: [
+                        {
+                            id: 1,
+                            question: '最近总是感觉疲劳，该如何调理？',
+                            date: '2024-01-15',
+                            status: '已回复'
+                        },
+                        {
+                            id: 2,
+                            question: '运动后肌肉酸痛该如何缓解？',
+                            date: '2024-01-10',
+                            status: '已回复'
+                        }
+                    ]
+                },
+                methods: {
+                    toggleTag(tag) {
+                        const index = this.selectedTags.indexOf(tag);
+                        if (index === -1) {
+                            this.selectedTags.push(tag);
+                        } else {
+                            this.selectedTags.splice(index, 1);
+                        }
+                    },
+                    submitQuestion() {
+                        if (!this.questionContent.trim()) {
+                            this.$message.warning('请输入咨询内容');
+                            return;
+                        }
+                        if (this.selectedTags.length === 0) {
+                            this.$message.warning('请选择至少一个咨询类型');
+                            return;
+                        }
+                        // 这里模拟提交咨询
+                        this.$message.success('咨询提交成功，请等待医生回复');
+                        this.questionContent = '';
+                        this.selectedTags = [];
+                    },
+                    consultDoctor(doctor) {
+                        this.$message.success(`即将为您连接${doctor.name}，请稍候...`);
+                    }
+                }
+            });
+        </script>
+    </body>
+</html>

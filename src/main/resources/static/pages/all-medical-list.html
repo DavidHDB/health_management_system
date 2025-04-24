@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>中医体质辨识</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../plugins/elementui/index.css">
+    <link rel="stylesheet" href="../plugins/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .test-container {
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+        }
+        .question-box {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ebeef5;
+            border-radius: 4px;
+        }
+        .result-box {
+            text-align: center;
+            padding: 20px;
+        }
+        .chart-box {
+            height: 400px;
+            margin: 20px 0;
+        }
+        .suggestion-box {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f5f7fa;
+            border-radius: 4px;
+        }
+        .step-box {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body class="hold-transition">
+    <div id="app">
+        <div class="content-header">
+            <h1>中医体质辨识</h1>
+        </div>
+        <div class="app-container">
+            <el-card class="test-container">
+                <el-steps :active="currentStep" finish-status="success" class="step-box">
+                    <el-step title="开始测试"></el-step>
+                    <el-step title="问卷填写"></el-step>
+                    <el-step title="查看结果"></el-step>
+                </el-steps>
+
+                <!-- 开始页面 -->
+                <div v-if="currentStep === 0">
+                    <el-alert
+                        title="测试说明"
+                        type="info"
+                        description="本测试基于中医体质辨识标准，通过回答一系列问题来判断您的体质类型。测试大约需要5-10分钟完成。"
+                        :closable="false"
+                        show-icon>
+                    </el-alert>
+                    <div style="text-align: center; margin-top: 30px;">
+                        <el-button type="primary" @click="startTest">开始测试</el-button>
+                    </div>
+                </div>
+
+                <!-- 问卷页面 -->
+                <div v-if="currentStep === 1" class="question-box">
+                    <el-progress :percentage="progressPercentage" :format="progressFormat"></el-progress>
+                    <h3>{{currentQuestion.title}}</h3>
+                    <el-radio-group v-model="currentQuestion.answer">
+                        <el-radio :label="1">没有</el-radio>
+                        <el-radio :label="2">很少</el-radio>
+                        <el-radio :label="3">有时</el-radio>
+                        <el-radio :label="4">经常</el-radio>
+                        <el-radio :label="5">总是</el-radio>
+                    </el-radio-group>
+                    <div style="margin-top: 20px;">
+                        <el-button @click="prevQuestion" :disabled="questionIndex === 0">上一题</el-button>
+                        <el-button type="primary" @click="nextQuestion" v-if="questionIndex < questions.length - 1">下一题</el-button>
+                        <el-button type="success" @click="submitTest" v-else>提交</el-button>
+                    </div>
+                </div>
+
+                <!-- 结果页面 -->
+                <div v-if="currentStep === 2" class="result-box">
+                    <h2>您的体质测试结果</h2>
+                    <div class="chart-box" id="resultChart"></div>
+                    
+                    <el-card class="suggestion-box">
+                        <div slot="header">
+                            <span>主要体质类型：{{mainType}}</span>
+                        </div>
+                        <el-collapse v-model="activeNames">
+                            <el-collapse-item title="体质特征" name="1">
+                                <div>{{typeDescription}}</div>
+                            </el-collapse-item>
+                            <el-collapse-item title="调养建议" name="2">
+                                <div>{{suggestions}}</div>
+                            </el-collapse-item>
+                            <el-collapse-item title="饮食指导" name="3">
+                                <div>{{dietAdvice}}</div>
+                            </el-collapse-item>
+                        </el-collapse>
+                    </el-card>
+
+                    <div style="margin-top: 20px;">
+                        <el-button type="primary" @click="restartTest">重新测试</el-button>
+                        <el-button type="success" @click="printResult">打印报告</el-button>
+                    </div>
+                </div>
+            </el-card>
+        </div>
+    </div>
+</body>
+<script src="../js/vue.js"></script>
+<script src="../plugins/elementui/index.js"></script>
+<script src="../js/jquery.min.js"></script>
+<script src="../plugins/echarts/echarts.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            currentStep: 0,
+            questionIndex: 0,
+            questions: [
+                { title: "您容易感到疲乏吗？", answer: null, type: "气虚质" },
+                { title: "您容易感冒吗？", answer: null, type: "气虚质" },
+                { title: "您容易气短，呼吸急促吗？", answer: null, type: "气虚质" },
+                { title: "您说话声音低弱无力吗？", answer: null, type: "气虚质" },
+                { title: "您感到手脚发凉吗？", answer: null, type: "阳虚质" },
+                { title: "您胃脘部、背部或腰膝部怕冷吗？", answer: null, type: "阳虚质" },
+                { title: "您感到怕冷、衣服比别人穿得多吗？", answer: null, type: "阳虚质" },
+                { title: "您感到手脚心发热吗？", answer: null, type: "阴虚质" },
+                { title: "您感到口干吗？", answer: null, type: "阴虚质" },
+                { title: "您感到眼睛干涩吗？", answer: null, type: "阴虚质" }
+            ],
+            activeNames: ['1', '2', '3'],
+            mainType: '',
+            typeDescription: '',
+            suggestions: '',
+            dietAdvice: '',
+            chart: null
+        },
+        computed: {
+            progressPercentage() {
+                return Math.round((this.questionIndex + 1) / this.questions.length * 100);
+            },
+            currentQuestion() {
+                return this.questions[this.questionIndex];
+            }
+        },
+        methods: {
+            progressFormat(percentage) {
+                return `${this.questionIndex + 1}/${this.questions.length}`;
+            },
+            startTest() {
+                this.currentStep = 1;
+            },
+            prevQuestion() {
+                if (this.questionIndex > 0) {
+                    this.questionIndex--;
+                }
+            },
+            nextQuestion() {
+                if (!this.currentQuestion.answer) {
+                    this.$message({
+                        message: '请选择一个选项',
+                        type: 'warning'
+                    });
+                    return;
+                }
+                if (this.questionIndex < this.questions.length - 1) {
+                    this.questionIndex++;
+                }
+            },
+            submitTest() {
+                if (!this.currentQuestion.answer) {
+                    this.$message({
+                        message: '请选择一个选项',
+                        type: 'warning'
+                    });
+                    return;
+                }
+                this.currentStep = 2;
+                this.analyzeResult();
+                this.$nextTick(() => {
+                    this.initChart();
+                });
+            },
+            restartTest() {
+                this.currentStep = 0;
+                this.questionIndex = 0;
+                this.questions.forEach(q => q.answer = null);
+            },
+            analyzeResult() {
+                // 计算各个体质的得分
+                const scores = {
+                    '气虚质': 0,
+                    '阳虚质': 0,
+                    '阴虚质': 0,
+                    '痰湿质': 0,
+                    '湿热质': 0,
+                    '血瘀质': 0,
+                    '气郁质': 0,
+                    '特禀质': 0,
+                    '平和质': 0
+                };
+                
+                // 计算每种体质的得分并添加随机因子使结果更均衡
+                this.questions.forEach(q => {
+                    if (q.answer) {
+                        // 基础分数
+                        scores[q.type] += q.answer;
+                        
+                        // 为其他体质类型也添加相关分数
+                        Object.keys(scores).forEach(type => {
+                            if (type !== q.type) {
+                                // 添加随机波动，使其他体质也有一定程度的表现
+                                scores[type] += Math.random() * q.answer * 0.5;
+                            }
+                        });
+                    }
+                });
+                
+                // 找出得分最高的体质类型
+                let maxScore = 0;
+                let maxType = '';
+                Object.entries(scores).forEach(([type, score]) => {
+                    if (score > maxScore) {
+                        maxScore = score;
+                        maxType = type;
+                    }
+                });
+                
+                // 设置主要体质类型
+                this.mainType = maxType;
+                
+                // 扩展体质类型信息
+                const typeInfo = {
+                    '气虚质': {
+                        description: "气虚是指人体气的功能活动不足，以疲乏、气短、自汗、易感冒等为主要特征。",
+                        suggestions: "1. 注意调节作息，保证充足睡眠\n2. 适当运动，以轻柔缓和为主\n3. 保持心情舒畅，避免过度劳累",
+                        diet: "1. 多食用补气食物：人参、黄芪、大枣、山药等\n2. 少食生冷食物\n3. 饮食有规律，不要过饱或饥饿"
+                    },
+                    '阳虚质': {
+                        description: "阳虚是指人体阳气不足，以怕冷、手脚冰凉、精神不振等为主要特征。",
+                        suggestions: "1. 注意保暖，特别是腰腹部和四肢\n2. 适当进行温和运动，如太极拳\n3. 作息规律，避免熬夜",
+                        diet: "1. 多食用温热性食物：生姜、羊肉、韭菜等\n2. 避免生冷食物\n3. 少饮冷饮"
+                    },
+                    '阴虚质': {
+                        description: "阴虚是指人体阴液亏少，以口干、手脚心热、失眠等为主要特征。",
+                        suggestions: "1. 保持充足睡眠\n2. 避免剧烈运动\n3. 保持心情平和，避免情绪激动",
+                        diet: "1. 多食用滋阴食物：百合、莲子、银耳等\n2. 少食辛辣刺激性食物\n3. 适量饮用温开水"
+                    },
+                    '痰湿质': {
+                        description: "痰湿质是指体内水液代谢异常，以体形肥胖、痰多、腹部肥满等为主要特征。",
+                        suggestions: "1. 加强运动，控制体重\n2. 保持良好的生活习惯\n3. 注意环境干燥，避免潮湿",
+                        diet: "1. 少食多餐，控制饮食量\n2. 少食油腻、甜食\n3. 多食用薏仁、茯苓等健脾利湿食物"
+                    },
+                    '湿热质': {
+                        description: "湿热质是指体内湿热积聚，以口苦、身重、容易长痘等为主要特征。",
+                        suggestions: "1. 保持情绪稳定\n2. 适量运动，注意排汗\n3. 保持环境通风",
+                        diet: "1. 多食用清热利湿食物：绿豆、苦瓜等\n2. 少食辛辣、油腻食物\n3. 多喝水"
+                    },
+                    '血瘀质': {
+                        description: "血瘀质是指血液运行不畅，以肤色晦暗、口唇发紫、容易瘀斑等为主要特征。",
+                        suggestions: "1. 规律运动，促进血液循环\n2. 保持心情舒畅，避免情志抑郁\n3. 注意保暖，预防受寒",
+                        diet: "1. 多食用活血化瘀食物：当归、红枣、桃仁等\n2. 少食油腻、生冷食物\n3. 戒烟限酒"
+                    },
+                    '气郁质': {
+                        description: "气郁质是指气机郁滞，以情志抑郁、胸闷不舒、易焦虑等为主要特征。",
+                        suggestions: "1. 培养兴趣爱好，保持心情愉悦\n2. 规律作息，适量运动\n3. 学会情绪管理，避免压力过大",
+                        diet: "1. 多食用理气食物：柑橘、玫瑰花茶等\n2. 清淡饮食，少食辛辣刺激\n3. 规律饮食，保持良好心情"
+                    },
+                    '特禀质': {
+                        description: "特禀质是指先天禀赋特殊，容易过敏，对外界环境适应能力较差。",
+                        suggestions: "1. 注意防护，避免接触过敏原\n2. 增强体质，提高免疫力\n3. 保持居室清洁，勤换床单被罩",
+                        diet: "1. 避免食用易致敏食物\n2. 多食用温和补益食物\n3. 清淡饮食，忌食辛辣刺激"
+                    },
+                    '平和质': {
+                        description: "平和质是指阴阳气血调和，体质健康，抗病能力强。",
+                        suggestions: "1. 保持良好的生活习惯\n2. 坚持适度运动\n3. 注意劳逸结合",
+                        diet: "1. 饮食有节，不偏不倚\n2. 荤素搭配，营养均衡\n3. 定时定量，戒烟限酒"
+                    }
+                };
+                
+                // 设置对应的描述和建议
+                const info = typeInfo[this.mainType];
+                this.typeDescription = info.description;
+                this.suggestions = info.suggestions;
+                this.dietAdvice = info.diet;
+                
+                // 更新图表数据，对分数进行归一化处理
+                const maxPossibleScore = 20; // 设置最大可能分数
+                this.chartData = Object.values(scores).map(score => 
+                    Math.min(Math.round(score), maxPossibleScore)
+                );
+            },
+            initChart() {
+                const chartDom = document.getElementById('resultChart');
+                const myChart = echarts.init(chartDom);
+                const option = {
+                    radar: {
+                        indicator: [
+                            { name: '气虚质', max: 20 },
+                            { name: '阳虚质', max: 20 },
+                            { name: '阴虚质', max: 20 },
+                            { name: '痰湿质', max: 20 },
+                            { name: '湿热质', max: 20 },
+                            { name: '血瘀质', max: 20 },
+                            { name: '气郁质', max: 20 },
+                            { name: '特禀质', max: 20 },
+                            { name: '平和质', max: 20 }
+                        ]
+                    },
+                    series: [{
+                        type: 'radar',
+                        data: [{
+                            value: this.chartData,
+                            name: '体质分布',
+                            areaStyle: {
+                                color: 'rgba(0, 128, 255, 0.3)'
+                            }
+                        }]
+                    }]
+                };
+                myChart.setOption(option);
+            },
+            printResult() {
+                window.print();
+            }
+        }
+    });
+</script>
+</html>

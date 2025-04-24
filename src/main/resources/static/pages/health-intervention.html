@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,user-scalable=no,minimal-ui">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <link rel="icon" href="../img/asset-favico.ico">
+        <title>健康干预</title>
+        <link rel="stylesheet" href="../css/page-health-index.css" />
+        <link rel="stylesheet" href="../plugins/elementui/index.css" />
+        <script src="../plugins/jquery/dist/jquery.min.js"></script>
+        <script src="../plugins/vue/vue.js"></script>
+        <script src="../plugins/vue/axios-0.18.0.js"></script>
+        <script src="../plugins/elementui/index.js"></script>
+        <style>
+            .intervention-container {
+                padding: 20px;
+            }
+            .intervention-card {
+                background: #fff;
+                border-radius: 8px;
+                padding: 15px;
+                margin-bottom: 15px;
+                box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
+            }
+            .intervention-title {
+                font-size: 16px;
+                color: #303133;
+                margin-bottom: 10px;
+                font-weight: bold;
+            }
+            .intervention-content {
+                color: #606266;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+            .intervention-form {
+                margin-top: 20px;
+            }
+            .form-item {
+                margin-bottom: 15px;
+            }
+            .form-label {
+                display: block;
+                margin-bottom: 5px;
+                color: #606266;
+            }
+            .form-input {
+                width: 100%;
+                padding: 8px;
+                border: 1px solid #dcdfe6;
+                border-radius: 4px;
+            }
+            .submit-btn {
+                width: 100%;
+                background-color: #409eff;
+                color: white;
+                border: none;
+                padding: 10px;
+                border-radius: 4px;
+                margin-top: 15px;
+            }
+            .health-tips {
+                margin-top: 20px;
+                padding: 10px;
+                background: #f0f9eb;
+                border-radius: 4px;
+                color: #67c23a;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="app">
+            <div class="top-header">
+                <span class="f-left"><i class="icon-back" onclick="history.go(-1)"></i></span>
+                <span class="center">健康干预</span>
+                <span class="f-right"><i class="icon-more"></i></span>
+            </div>
+            
+            <div class="intervention-container">
+                <!-- 健康状况采集表单 -->
+                <div class="intervention-card">
+                    <div class="intervention-title">当前健康状况采集</div>
+                    <div class="intervention-form">
+                        <div class="form-item">
+                            <label class="form-label">血压 (mmHg)</label>
+                            <input type="text" class="form-input" v-model="healthData.bloodPressure" placeholder="例如: 120/80">
+                        </div>
+                        <div class="form-item">
+                            <label class="form-label">心率 (次/分)</label>
+                            <input type="number" class="form-input" v-model="healthData.heartRate" placeholder="请输入心率">
+                        </div>
+                        <div class="form-item">
+                            <label class="form-label">血糖 (mmol/L)</label>
+                            <input type="text" class="form-input" v-model="healthData.bloodSugar" placeholder="请输入血糖值">
+                        </div>
+                        <div class="form-item">
+                            <label class="form-label">体重 (kg)</label>
+                            <input type="number" class="form-input" v-model="healthData.weight" placeholder="请输入体重">
+                        </div>
+                        <div class="form-item">
+                            <label class="form-label">睡眠时长 (小时)</label>
+                            <input type="number" class="form-input" v-model="healthData.sleepHours" placeholder="请输入睡眠时长">
+                        </div>
+                        <div class="form-item">
+                            <label class="form-label">运动时长 (分钟)</label>
+                            <input type="number" class="form-input" v-model="healthData.exerciseMinutes" placeholder="请输入今日运动时长">
+                        </div>
+                        <button class="submit-btn" @click="submitHealthData">提交数据</button>
+                    </div>
+                </div>
+
+                <!-- 健康建议展示 -->
+                <div class="intervention-card" v-if="healthAdvice">
+                    <div class="intervention-title">健康建议</div>
+                    <div class="intervention-content">
+                        <p>{{ healthAdvice }}</p>
+                    </div>
+                </div>
+
+                <!-- 健康小贴士 -->
+                <div class="health-tips">
+                    <p>温馨提示：定期记录身体状况，有助于及时发现健康问题。建议每天固定时间进行记录。</p>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            new Vue({
+                el: '#app',
+                data: {
+                    healthData: {
+                        bloodPressure: '',
+                        heartRate: '',
+                        bloodSugar: '',
+                        weight: '',
+                        sleepHours: '',
+                        exerciseMinutes: ''
+                    },
+                    healthAdvice: ''
+                },
+                methods: {
+                    submitHealthData() {
+                        // 这里模拟提交数据并获取健康建议
+                        // 实际项目中应该调用后端API
+                        this.generateHealthAdvice();
+                        this.$message({
+                            message: '数据提交成功！',
+                            type: 'success'
+                        });
+                    },
+                    generateHealthAdvice() {
+                        // 模拟根据数据生成健康建议
+                        const advices = [
+                            "您的各项指标基本正常，建议继续保持良好的生活习惯。",
+                            "建议适当增加运动时间，每天保持30分钟以上的中等强度运动。",
+                            "您的睡眠时间略短，建议保证7-8小时的充足睡眠。",
+                            "血压略高，建议控制饮食中的盐分摄入，规律作息。"
+                        ];
+                        this.healthAdvice = advices[Math.floor(Math.random() * advices.length)];
+                    }
+                }
+            });
+        </script>
+    </body>
+</html>

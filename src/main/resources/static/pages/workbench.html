@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>工作台</title>
+    <link rel="stylesheet" href="../plugins/elementui/index.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/vue.js"></script>
+    <script src="../plugins/elementui/index.js"></script>
+    <script src="../plugins/echarts/echarts.js"></script>
+</head>
+<body class="hold-transition">
+    <div id="app">
+        <div class="content-header">
+            <h1>工作台</h1>
+        </div>
+        <div class="app-container">
+            <div class="box">
+                <!-- 数据概览 -->
+                <el-row :gutter="20">
+                    <el-col :span="6">
+                        <el-card class="data-card">
+                            <div class="data-header">今日预约人数</div>
+                            <div class="data-number">65</div>
+                        </el-card>
+                    </el-col>
+                    <el-col :span="6">
+                        <el-card class="data-card">
+                            <div class="data-header">今日评估人数</div>
+                            <div class="data-number">8</div>
+                        </el-card>
+                    </el-col>
+                    <el-col :span="6">
+                        <el-card class="data-card">
+                            <div class="data-header">今日未执行</div>
+                            <div class="data-number">12</div>
+                        </el-card>
+                    </el-col>
+                    <el-col :span="6">
+                        <el-card class="data-card">
+                            <div class="data-header">今日已执行</div>
+                            <div class="data-number">20</div>
+                        </el-card>
+                    </el-col>
+                </el-row>
+
+                <!-- 图表展示 -->
+                <el-row :gutter="20" style="margin-top: 20px;">
+                    <el-col :span="12">
+                        <el-card>
+                            <div id="memberChart" style="height: 300px;"></div>
+                        </el-card>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-card>
+                            <div id="workChart" style="height: 300px;"></div>
+                        </el-card>
+                    </el-col>
+                </el-row>
+                
+                <!-- 健康系统流程图 -->
+                <el-row style="margin-top: 20px;">
+                    <el-col :span="24">
+                        <el-card>
+                            <div slot="header" class="clearfix">
+                                <span>健康系统流程图</span>
+                            </div>
+                            <div class="flow-chart">
+                                <div class="flow-item">
+                                    <el-button type="primary" icon="el-icon-notebook-1">新建档案</el-button>
+                                    <i class="el-icon-arrow-right"></i>
+                                </div>
+                                <div class="flow-item">
+                                    <el-button type="primary" icon="el-icon-date">会员预约</el-button>
+                                    <i class="el-icon-arrow-right"></i>
+                                </div>
+                                <div class="flow-item">
+                                    <el-button type="primary" icon="el-icon-data-line">体验数据</el-button>
+                                    <i class="el-icon-arrow-right"></i>
+                                </div>
+                                <div class="flow-item">
+                                    <div class="sub-flow">
+                                        <el-button type="success" icon="el-icon-document">健康评估问卷</el-button>
+                                        <el-button type="success" icon="el-icon-user">中医体质辨别</el-button>
+                                        <el-button type="success" icon="el-icon-monitor">心理评测</el-button>
+                                    </div>
+                                    <i class="el-icon-arrow-right"></i>
+                                </div>
+                                <div class="flow-item">
+                                    <el-button type="warning" icon="el-icon-user">人群分类</el-button>
+                                    <i class="el-icon-arrow-right"></i>
+                                </div>
+                                <div class="flow-item">
+                                    <el-button type="warning" icon="el-icon-document-checked">干预方案制定</el-button>
+                                    <i class="el-icon-arrow-right"></i>
+                                </div>
+                                <div class="flow-item">
+                                    <div class="sub-flow">
+                                        <el-button type="info" icon="el-icon-notebook-2">随访日记</el-button>
+                                        <el-button type="info" icon="el-icon-chat-dot-round">微信提醒</el-button>
+                                    </div>
+                                    <i class="el-icon-arrow-right"></i>
+                                </div>
+                                <div class="flow-item">
+                                    <el-button type="danger" icon="el-icon-star-on">干预效果评估</el-button>
+                                </div>
+                            </div>
+                        </el-card>
+                    </el-col>
+                </el-row>
+            </div>
+        </div>
+    </div>
+</body>
+
+<style>
+.data-card {
+    text-align: center;
+    color: #666;
+}
+.data-header {
+    font-size: 14px;
+    padding: 10px 0;
+}
+.data-number {
+    font-size: 24px;
+    font-weight: bold;
+    color: #409EFF;
+}
+
+/* 流程图样式 */
+.flow-chart {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    padding: 20px;
+    background-color: #f5f7fa;
+    border-radius: 4px;
+}
+
+.flow-item {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.flow-item .el-icon-arrow-right {
+    font-size: 20px;
+    color: #909399;
+    margin: 0 15px;
+}
+
+.sub-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sub-flow .el-button {
+    margin: 0;
+}
+
+.el-button [class^="el-icon-"] {
+    margin-right: 5px;
+}
+
+.el-card {
+    margin-bottom: 20px;
+}
+
+.el-card__header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #EBEEF5;
+    box-sizing: border-box;
+}
+</style>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+        },
+        mounted() {
+            this.initMemberChart();
+            this.initWorkChart();
+            window.addEventListener('resize', () => {
+                this.resizeCharts();
+            });
+        },
+        methods: {
+            resizeCharts() {
+                let memberChart = echarts.init(document.getElementById('memberChart'));
+                let workChart = echarts.init(document.getElementById('workChart'));
+                memberChart.resize();
+                workChart.resize();
+            },
+            initMemberChart() {
+                // 确保DOM已经渲染完成
+                this.$nextTick(() => {
+                    let memberChart = echarts.init(document.getElementById('memberChart'));
+                    memberChart.setOption({
+                        title: { text: '会员数量统计' },
+                        tooltip: {},
+                        xAxis: {
+                            data: ["1月", "2月", "3月", "4月", "5月", "6月"]
+                        },
+                        yAxis: {},
+                        series: [{
+                            name: '会员数',
+                            type: 'line',
+                            data: [5, 20, 36, 10, 10, 20]
+                        }]
+                    });
+                });
+            },
+            initWorkChart() {
+                this.$nextTick(() => {
+                    let workChart = echarts.init(document.getElementById('workChart'));
+                    workChart.setOption({
+                        title: { text: '工作量统计' },
+                        tooltip: {},
+                        xAxis: {
+                            data: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
+                        },
+                        yAxis: {},
+                        series: [{
+                            name: '工作量',
+                            type: 'bar',
+                            data: [5, 20, 36, 10, 10, 20, 15]
+                        }]
+                    });
+                });
+            }
+        }
+    });
+</script>
+</html>

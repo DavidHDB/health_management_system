@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,user-scalable=no,minimal-ui">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <link rel="icon" href="../img/asset-favico.ico">
+        <title>健康档案</title>
+        <link rel="stylesheet" href="../css/page-health-index.css" />
+        <link rel="stylesheet" href="../plugins/elementui/index.css" />
+        <script src="../plugins/jquery/dist/jquery.min.js"></script>
+        <script src="../plugins/vue/vue.js"></script>
+        <script src="../plugins/vue/axios-0.18.0.js"></script>
+        <script src="../plugins/elementui/index.js"></script>
+        <style>
+            .record-container {
+                padding: 20px;
+                background: #f5f7fa;
+                min-height: 100vh;
+            }
+            .user-info {
+                background: #fff;
+                border-radius: 8px;
+                padding: 20px;
+                margin-bottom: 20px;
+                box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
+            }
+            .user-avatar {
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                margin-right: 15px;
+                float: left;
+            }
+            .user-details {
+                overflow: hidden;
+            }
+            .user-name {
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 5px;
+                color: #303133;
+            }
+            .user-id {
+                color: #909399;
+                font-size: 14px;
+            }
+            .record-card {
+                background: #fff;
+                border-radius: 8px;
+                padding: 15px;
+                margin-bottom: 15px;
+                box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
+            }
+            .record-title {
+                font-size: 16px;
+                color: #303133;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 1px solid #ebeef5;
+            }
+            .record-item {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 10px;
+                font-size: 14px;
+            }
+            .item-label {
+                color: #606266;
+            }
+            .item-value {
+                color: #303133;
+                font-weight: 500;
+            }
+            .health-status {
+                display: flex;
+                justify-content: space-around;
+                text-align: center;
+                padding: 15px 0;
+            }
+            .status-item {
+                flex: 1;
+            }
+            .status-value {
+                font-size: 24px;
+                color: #409eff;
+                margin-bottom: 5px;
+            }
+            .status-label {
+                color: #606266;
+                font-size: 12px;
+            }
+            .chart-container {
+                height: 200px;
+                margin: 15px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="app">
+            <div class="top-header">
+                <span class="f-left"><i class="icon-back" onclick="history.go(-1)"></i></span>
+                <span class="center">健康档案</span>
+                <span class="f-right"><i class="icon-more"></i></span>
+            </div>
+            
+            <div class="record-container">
+                <!-- 用户基本信息 -->
+                <div class="user-info">
+                    <img :src="userInfo.avatar" class="user-avatar">
+                    <div class="user-details">
+                        <div class="user-name">{{userInfo.name}}</div>
+                        <div class="user-id">档案号：{{userInfo.id}}</div>
+                    </div>
+                </div>
+
+                <!-- 健康状态概览 -->
+                <div class="record-card">
+                    <div class="record-title">健康状态</div>
+                    <div class="health-status">
+                        <div class="status-item">
+                            <div class="status-value">{{healthStatus.bmi}}</div>
+                            <div class="status-label">BMI指数</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-value">{{healthStatus.bloodPressure}}</div>
+                            <div class="status-label">血压</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-value">{{healthStatus.heartRate}}</div>
+                            <div class="status-label">心率</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 基本信息 -->
+                <div class="record-card">
+                    <div class="record-title">基本信息</div>
+                    <div class="record-item">
+                        <span class="item-label">性别</span>
+                        <span class="item-value">{{basicInfo.gender}}</span>
+                    </div>
+                    <div class="record-item">
+                        <span class="item-label">年龄</span>
+                        <span class="item-value">{{basicInfo.age}}岁</span>
+                    </div>
+                    <div class="record-item">
+                        <span class="item-label">身高</span>
+                        <span class="item-value">{{basicInfo.height}}cm</span>
+                    </div>
+                    <div class="record-item">
+                        <span class="item-label">体重</span>
+                        <span class="item-value">{{basicInfo.weight}}kg</span>
+                    </div>
+                    <div class="record-item">
+                        <span class="item-label">血型</span>
+                        <span class="item-value">{{basicInfo.bloodType}}</span>
+                    </div>
+                </div>
+
+                <!-- 既往病史 -->
+                <div class="record-card">
+                    <div class="record-title">既往病史</div>
+                    <div v-if="medicalHistory.length > 0">
+                        <div v-for="(item, index) in medicalHistory" :key="index" class="record-item">
+                            <span class="item-label">{{item.date}}</span>
+                            <span class="item-value">{{item.disease}}</span>
+                        </div>
+                    </div>
+                    <div v-else style="text-align: center; color: #909399; padding: 10px;">
+                        暂无病史记录
+                    </div>
+                </div>
+
+                <!-- 体检记录 -->
+                <div class="record-card">
+                    <div class="record-title">体检记录</div>
+                    <div v-if="examRecords.length > 0">
+                        <div v-for="(record, index) in examRecords" :key="index" class="record-item">
+                            <span class="item-label">{{record.date}}</span>
+                            <span class="item-value">{{record.type}}</span>
+                        </div>
+                    </div>
+                    <div v-else style="text-align: center; color: #909399; padding: 10px;">
+                        暂无体检记录
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            new Vue({
+                el: '#app',
+                data: {
+                    userInfo: {
+                        avatar: '../img/avatar.png',
+                        name: '张三',
+                        id: 'HA20240101001'
+                    },
+                    healthStatus: {
+                        bmi: '22.1',
+                        bloodPressure: '120/80',
+                        heartRate: '75'
+                    },
+                    basicInfo: {
+                        gender: '男',
+                        age: 28,
+                        height: 175,
+                        weight: 68,
+                        bloodType: 'A型'
+                    },
+                    medicalHistory: [
+                        {
+                            date: '2023-05',
+                            disease: '普通感冒'
+                        },
+                        {
+                            date: '2022-08',
+                            disease: '扁桃体炎'
+                        }
+                    ],
+                    examRecords: [
+                        {
+                            date: '2024-01-15',
+                            type: '年度体检'
+                        },
+                        {
+                            date: '2023-07-20',
+                            type: '常规体检'
+                        }
+                    ]
+                },
+                methods: {
+                    // 这里可以添加需要的方法
+                }
+            });
+        </script>
+    </body>
+</html>
